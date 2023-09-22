@@ -48,6 +48,15 @@ app.get('/movies/add', function(req, res){
  app.get('/movies/delete', function(req, res){
     res.send(`status:${res.statusCode}, message: anything`);
  });
+ app.get('/movies/get/by-date', function(req, res){
+   res.send(`status:${res.statusCode}, message: ${movies.sort((a, b)=>{return a.year - b.year}).map(e=>{return ` title: ${e.title}, year: ${e.year},rating: ${e.rating} ||`})}`);
+});
+app.get('/movies/get/by-rating', function(req, res){
+   res.send(`status:${res.statusCode}, message: ${movies.sort((a, b)=>{return b.rating - a.rating}).map(e=>{return ` title: ${e.title}, year: ${e.year},rating: ${e.rating} ||`})}`);
+});
+app.get('/movies/get/by-title', function(req, res){
+   res.send(`status:${res.statusCode}, message: ${movies.sort((a, b)=>{  if (a.title.toLowerCase() < b.title.toLowerCase()) return -1;if (a.title.toLowerCase() > b.title.toLowerCase()) return 1; return 0;}).map(e=>{return ` title: ${e.title}, year: ${e.year},rating: ${e.rating} ||`})}`);
+});
 
 
 
