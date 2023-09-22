@@ -64,12 +64,37 @@ app.get('/movies/add', function(req, res){
     }
     res.send(response);
  });
- app.get('/movies/edit', function(req, res){
-    res.status(200).send(`status:${res.statusCode}, message: anything`);
+ app.get('/movies/edit/:id', function(req, res){
+      let editMoviesTitle = req.query.title
+      let editMoviesYear = req.query.year
+      let editMoviesRating = req.query.rating
+      let movieId = parseInt(req.params.id)
+      let movieToEdit = movies.find(movie => movie.id === movieId);
+      if (!movieToEdit){
+         res.status(404).send({status: 404, error: true, message: `The movie with ID ${movieId} does not exist`});
+      }if(editMoviesTitle){
+         movieToEdit.title = editMoviesTitle
+      }if(editMoviesYear){
+         movieToEdit.year = editMoviesYear
+      }if(editMoviesRating){
+         movieToEdit.rating = editMoviesRating
+      }
+         res.status(200).send({status: 200, error: false, message: 'Movie edited successfully', movies: movies});
  });
- app.get('/movies/delete', function(req, res){
-   res.status(200).send(`status:${res.statusCode}, message: anything`);
- });
+ 
+
+
+
+ app.get('/movies/delete/:id', function(req, res) {
+   const movieId = parseInt(req.params.id);
+   const movieIndex = movies.findIndex(movie => movie.id === movieId);
+   if (movieIndex === -1) {
+     res.status(404).send({status: 404, error: true, message: `The movie with ID ${movieId} does not exist`});
+   } else {
+     movies.splice(movieIndex, 1);
+     res.status(200).send({status: 200, error: false,message: 'Movie deleted successfully',movies: movies });
+   }
+});
 
  app.get('/movies/get/by-date', function(req, res){
    movies.sort((a, b)=>{return a.year - b.year})
