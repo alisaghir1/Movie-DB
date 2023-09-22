@@ -44,7 +44,10 @@ app.get('/search', function(req, res){
 app.get('/movies/add', function(req, res){
    let addTittle = req.query.tittle
    let addYear = req.query.year
-   let addRating = req.query.rating
+   let addRating = req.query.rating??4
+   if (!addTittle || !addYear){
+     res.status(403).send(` status: ${res.statusCode}, error: true, message: 'you have to provide a tittle and a year'`);
+   }else
    movies.push({title: addTittle, year: addYear, rating: addRating, id: movies.length + 1})
     res.status(200).send(`status:${res.statusCode}`);
  });
