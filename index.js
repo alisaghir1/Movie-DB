@@ -42,14 +42,19 @@ app.get('/search', function(req, res){
 });
 
 app.get('/movies/add', function(req, res){
-   let addTittle = req.query.tittle
+   let addTitle = req.query.title
    let addYear = req.query.year
-   let addRating = req.query.rating??4
-   if (!addTittle || !addYear){
-     res.status(403).send(` status: ${res.statusCode}, error: true, message: 'you have to provide a tittle and a year'`);
-   }else
-   movies.push({title: addTittle, year: addYear, rating: addRating, id: movies.length + 1})
-    res.status(200).send(`status:${res.statusCode}`);
+   let addRating = req.query.rating || 4
+   if (!addTitle || !addYear){
+     res.status(403).send(` status: ${res.statusCode}, error: true, message: 'you have to provide a title and a year'`);
+   }else if(addYear.length < 4 || addYear.length > 4 || isNaN(addYear)){
+      res.status(403).send(` status: ${res.statusCode}, error: true, message: 'make sure you put 4 digits'`);
+   }
+   else
+   {
+   movies.push({title: addTitle, year: addYear, rating: addRating, id: movies.length + 1})
+    res.status(200).send(`status:${res.statusCode}. movies has been added successfully`);
+   }
  });
 
  app.get('/movies/get', function(req, res){
