@@ -3,10 +3,10 @@ var express = require('express');
 var app = express();
 
 const movies = [
-    { title: 'Jaws', year: 1975, rating: 8 },
-    { title: 'Avatar', year: 2009, rating: 7.8 },
-    { title: 'Brazil', year: 1985, rating: 8 },
-    { title: 'الإرهاب والكباب‎', year: 1992, rating: 6.2 }
+    { title: 'Jaws', year: 1975, rating: 8, id: 1},
+    { title: 'Avatar', year: 2009, rating: 7.8 , id: 2},
+    { title: 'Brazil', year: 1985, rating: 8 , id: 3},
+    { title: 'الإرهاب والكباب‎', year: 1992, rating: 6.2 , id: 4}
 ]
 
 
@@ -57,6 +57,16 @@ app.get('/movies/get/by-rating', function(req, res){
 app.get('/movies/get/by-title', function(req, res){
    res.send(`status:${res.statusCode}, message: ${movies.sort((a, b)=>{  if (a.title.toLowerCase() < b.title.toLowerCase()) return -1;if (a.title.toLowerCase() > b.title.toLowerCase()) return 1; return 0;}).map(e=>{return ` title: ${e.title}, year: ${e.year},rating: ${e.rating} ||`})}`);
 });
+app.get('/movies/get/id/:id', function(req, res){
+   let id= parseInt(req.params.id);
+   let movie= movies.find((movie)=> movie.id === id);
+   if (!movie) {
+      res.statues(404).send(`statues:${res.statusCode}, message: the movie ${id} does not exist,`,);
+    } else {
+      res.send(movie);
+    }
+});
+
 
 
 
