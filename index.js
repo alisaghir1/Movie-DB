@@ -42,7 +42,11 @@ app.get('/search', function(req, res){
 });
 
 app.get('/movies/add', function(req, res){
-    res.status(200).send(`status:${res.statusCode}, message: anything`);
+   let addTittle = req.query.tittle
+   let addYear = req.query.year
+   let addRating = req.query.rating
+   movies.push({title: addTittle, year: addYear, rating: addRating, id: movies.length + 1})
+    res.status(200).send(`status:${res.statusCode}`);
  });
 
  app.get('/movies/get', function(req, res){
@@ -96,7 +100,6 @@ app.get('/movies/get/id/:id', function(req, res){
       res.send(movie);
     }
 });
-
 
 
 
