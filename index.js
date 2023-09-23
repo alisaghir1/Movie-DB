@@ -44,7 +44,7 @@ app.get('api/search', function (req, res) {
   }
 });
 
-app.post('api/movies', function (req, res) {
+app.post('api/addmovies', function (req, res) {
   let addTitle = req.query.title;
   let addYear = req.query.year;
   let addRating = req.query.rating || 4;
@@ -80,7 +80,7 @@ app.get('api/movies', function (req, res) {
   };
   res.send(response);
 });
-app.put('api/movies/:id', function (req, res) {
+app.put('api/editmovies/:id', function (req, res) {
   let editMoviesTitle = req.query.title;
   let editMoviesYear = req.query.year;
   let editMoviesRating = req.query.rating;
@@ -110,7 +110,7 @@ app.put('api/movies/:id', function (req, res) {
   });
 });
 
-app.delete('api/movies/:id', function (req, res) {
+app.delete('api/deletemovies/:id', function (req, res) {
   const movieId = parseInt(req.params.id);
   const movieIndex = movies.findIndex((movie) => movie.id === movieId);
   if (movieIndex === -1) {
@@ -165,7 +165,7 @@ app.get('api/movies/by-tittle', function (req, res) {
   res.status(200).send(response);
 });
 
-app.get('api/movies/get/id/:id', function (req, res) {
+app.get('api/movies/id/:id', function (req, res) {
   let id = parseInt(req.params.id);
   let movie = movies.find((movie) => movie.id === id);
   if (!movie) {
