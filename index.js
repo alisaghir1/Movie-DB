@@ -1,6 +1,7 @@
+const mongoose = require('mongoose');
 var express = require('express');
 
-var app = express();
+const app = express();
 
 const movies = [
   { title: 'Jaws', year: 1975, rating: 8, id: 1 },
@@ -8,6 +9,13 @@ const movies = [
   { title: 'Brazil', year: 1985, rating: 8, id: 3 },
   { title: 'الإرهاب والكباب‎', year: 1992, rating: 6.2, id: 4 },
 ];
+
+const movieSchema = new mongoose.Schema({
+  title: String,
+  year: Number,
+  rating: Number,
+});
+const Movie = mongoose.model('Movie', movieSchema);
 
 console.log(movies);
 app.get('/api/test', function (req, res) {
@@ -44,44 +52,36 @@ app.get('/api/search', function (req, res) {
   }
 });
 
-app.post('/api/addmovies', function (req, res) {
-  let addTitle = req.query.title;
-  let addYear = req.query.year;
-  let addRating = req.query.rating || 4;
-  if (!addTitle || !addYear) {
+app.get('/api/addmovies', async  (req, res) => {
+  const { title, year, rating } = req.query;
+  if (!title || !year) {
     res
       .status(403)
       .send(
         ` status: ${res.statusCode}, error: true, message: 'you have to provide a title and a year'`
       );
-  } else if (addYear.length < 4 || addYear.length > 4 || isNaN(addYear)) {
+  } else if (year.length < 4 || year.length > 4 || isNaN(year)) {
     res
       .status(403)
       .send(
         ` status: ${res.statusCode}, error: true, message: 'make sure you put 4 digits'`
       );
-  } else {
-    movies.push({
-      title: addTitle,
-      year: addYear,
-      rating: addRating,
-      id: movies.length + 1,
-    });
-    res
-      .status(200)
-      .send(`status:${res.statusCode}. movies has been added successfully`);
+  }
+  try {
+    const newMovie = new Movie({ title, year, rating });
+    await newMovie.save();
+    res.status(200).json({ message: 'Movie has been added successfully' });
+  } catch (err) {
+    console.error('Error adding movie:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.get('/api/movies', function (req, res) {
-  const response = {
-    status: res.statusCode,
-    data: movies,
-  };
-  res.send(response);
+  res.status(200).send({ status: res.statusCode, data: movies });
 });
 
-app.put('/api/editmovies/:id', function (req, res) {
+app.get('/api/editmovies/:id', function (req, res) {
   let editMoviesTitle = req.query.title;
   let editMoviesYear = req.query.year;
   let editMoviesRating = req.query.rating;
@@ -111,7 +111,7 @@ app.put('/api/editmovies/:id', function (req, res) {
   });
 });
 
-app.delete('/api/deletemovies/:id', function (req, res) {
+app.get('/api/deletemovies/:id', function (req, res) {
   const movieId = parseInt(req.params.id);
   const movieIndex = movies.findIndex((movie) => movie.id === movieId);
   if (movieIndex === -1) {
@@ -135,11 +135,8 @@ app.get('/api/movies/by-date', function (req, res) {
   movies.sort((a, b) => {
     return a.year - b.year;
   });
-  const response = {
-    statues: res.statusCode,
-    data: movies,
-  };
-  res.status(200).send(response);
+
+  res.status(200).send({ statues: res.statusCode, data: movies });
 });
 
 app.get('/api/movies/by-rating', function (req, res) {
@@ -159,11 +156,8 @@ app.get('/api/movies/by-tittle', function (req, res) {
     if (a.title.toLowerCase() > b.title.toLowerCase()) return 1;
     return 0;
   });
-  const response = {
-    statues: res.statusCode,
-    data: movies,
-  };
-  res.status(200).send(response);
+
+  res.status(200).send({ statues: res.statusCode, data: movies });
 });
 
 app.get('/api/movies/id/:id', function (req, res) {
@@ -171,7 +165,7 @@ app.get('/api/movies/id/:id', function (req, res) {
   let movie = movies.find((movie) => movie.id === id);
   if (!movie) {
     res
-      .statues(404)
+      .status(404)
       .send(
         `statues:${res.statusCode}, message: the movie ${id} does not exist,`
       );
@@ -180,4 +174,16 @@ app.get('/api/movies/id/:id', function (req, res) {
   }
 });
 
-app.listen(8080);
+mongoose
+  .connect(
+    'mongodb+srv://alisaghir543:Fuckoff109@cluster0.u0erpp6.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp'
+  )
+  .then(() => {
+    app.listen(8080, () => {
+      console.log('connection successful');
+    });
+    console.log('Connected to MongoDB');
+  })
+  .catch((err) => {
+    console.log(err);
+  });
