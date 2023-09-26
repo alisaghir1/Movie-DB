@@ -3,6 +3,8 @@ var express = require('express');
 
 const app = express();
 
+app.use(express.urlencoded({ extended: false }));
+
 const movies = [
   { title: 'Jaws', year: 1975, rating: 8, id: 1 },
   { title: 'Avatar', year: 2009, rating: 7.8, id: 2 },
@@ -52,24 +54,23 @@ app.get('/api/search', function (req, res) {
   }
 });
 
-app.get('/api/addmovies', async  (req, res) => {
-  const { title, year, rating } = req.query;
-  if (!title || !year) {
-    res
-      .status(403)
-      .send(
-        ` status: ${res.statusCode}, error: true, message: 'you have to provide a title and a year'`
-      );
-  } else if (year.length < 4 || year.length > 4 || isNaN(year)) {
-    res
-      .status(403)
-      .send(
-        ` status: ${res.statusCode}, error: true, message: 'make sure you put 4 digits'`
-      );
-  }
+app.post('/api/addmovies', async (req, res) => {
+  const { title, year, rating } = req.body;
+  // if (!title || !year) {
+  //   res
+  //     .status(403)
+  //     .send(
+  //       ` status: ${res.statusCode}, error: true, message: 'you have to provide a title and a year'`
+  //     );
+  // } else if (year.length < 4 || year.length > 4 || isNaN(year)) {
+  //   res
+  //     .status(403)
+  //     .send(
+  //       ` status: ${res.statusCode}, error: true, message: 'make sure you put 4 digits'`
+  //     );
+  // }
   try {
-    const newMovie = new Movie({ title, year, rating });
-    await newMovie.save();
+    const newMovie = await Movie.create({ title, year, rating });
     res.status(200).json({ message: 'Movie has been added successfully' });
   } catch (err) {
     console.error('Error adding movie:', err);
@@ -77,56 +78,74 @@ app.get('/api/addmovies', async  (req, res) => {
   }
 });
 
-app.get('/api/movies', function (req, res) {
-  res.status(200).send({ status: res.statusCode, data: movies });
-});
+app.put('/api/editmovies/:id', async (req, res) => {
+  try {
+    const movieId = parseInt(req.params.id);
 
-app.get('/api/editmovies/:id', function (req, res) {
-  let editMoviesTitle = req.query.title;
-  let editMoviesYear = req.query.year;
-  let editMoviesRating = req.query.rating;
-  let movieId = parseInt(req.params.id);
-  let movieToEdit = movies.find((movie) => movie.id === movieId);
-  if (!movieToEdit) {
-    res.status(404).send({
-      status: 404,
+    const movieToEdit = await Movie.findById(movieId);
+
+    if (!movieToEdit) {
+      return res.status(404).json({
+        status: 404,
+        error: true,
+        message: `The movie with ID ${movieId} does not exist`,
+      });
+    }
+
+    const { title, year, rating } = req.body;
+
+    if (title) {
+      movieToEdit.title = title;
+    }
+    if (year) {
+      movieToEdit.year = year;
+    }
+    if (rating) {
+      movieToEdit.rating = rating;
+    }
+    await movieToEdit.save();
+
+    res.status(200).json({
+      status: 200,
+      error: false,
+      message: 'Movie edited successfully',
+      editedMovie: movieToEdit,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: 500,
       error: true,
-      message: `The movie with ID ${movieId} does not exist`,
+      message: 'An error occurred while editing the movie',
     });
   }
-  if (editMoviesTitle) {
-    movieToEdit.title = editMoviesTitle;
-  }
-  if (editMoviesYear) {
-    movieToEdit.year = editMoviesYear;
-  }
-  if (editMoviesRating) {
-    movieToEdit.rating = editMoviesRating;
-  }
-  res.status(200).send({
-    status: 200,
-    error: false,
-    message: 'Movie edited successfully',
-    movies: movies,
-  });
 });
 
-app.get('/api/deletemovies/:id', function (req, res) {
-  const movieId = parseInt(req.params.id);
-  const movieIndex = movies.findIndex((movie) => movie.id === movieId);
-  if (movieIndex === -1) {
-    res.status(404).send({
-      status: 404,
-      error: true,
-      message: `The movie with ID ${movieId} does not exist`,
-    });
-  } else {
-    movies.splice(movieIndex, 1);
-    res.status(200).send({
+app.delete('/api/deletemovies/:id', async (req, res) => {
+  try {
+    const movieId = parseInt(req.params.id);
+
+    const deletedMovie = await Movie.findByIdAndRemove(movieId);
+
+    if (!deletedMovie) {
+      return res.status(404).json({
+        status: 404,
+        error: true,
+        message: `The movie with ID ${movieId} does not exist`,
+      });
+    }
+    res.status(200).json({
       status: 200,
       error: false,
       message: 'Movie deleted successfully',
-      movies: movies,
+      deletedMovie: deletedMovie,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: 500,
+      error: true,
+      message: 'An error occurred while deleting the movie',
     });
   }
 });
